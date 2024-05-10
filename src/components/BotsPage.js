@@ -8,7 +8,7 @@ function BotsPage() {
 
   
   function fetchData() {
-    return fetch(`http://localhost:3004/bots`)
+    return fetch(`http://localhost:4001/bots`)
       .then((resp) => resp.json())
       .then((data) => {
         setBots(data);
