@@ -1,48 +1,72 @@
-import React, { useState, useEffect } from "react";
-import YourBotArmy from "./YourBotArmy";
-import BotCollection from "./BotCollection";
+import React, { useState, useEffect } from 'react';
+import BotCollection from './BotCollection';
+import BotArmy from './BotArmy';
+import BotSpecs from './BotSpecs';
+import BotSearch from './BotSearch';
+import BotFilter from './BotFilter'
 
-function BotsPage() {
-  
-  const [bots, setBots] = useState([]);
-
-  
-  function fetchData() {
-    return fetch(`http://localhost:4001/bots`)
-      .then((resp) => resp.json())
-      .then((data) => {
-        setBots(data);
-      });
-  }
+const BotPage = () => {
+  const [allBots, setAllBots] = useState([]);
+  const [selectBot, setSelectBot] = useState(undefined);
+  const [query, setQuery] = useState('');
+  const [filter, setFilter] = useState('All');
 
   useEffect(() => {
-    fetchData();
+    fetch('https://bot-battlr-data-0cjn.onrender.com/bots')
+      .then(res => res.json())
+      .then(bots => setAllBots(bots.map(bot => ({ ...bot, owned: false }))));
   }, []);
 
-  
+  const clickBot = (bot) => setSelectBot(bot);
 
-  function enlistBot(bot) {
-    setBots(bots.map((b) => (b.id === bot.id ? { ...b, army: true } : b)));
-  }
+  const addBot = (selectedBot) => {
+    setAllBots(allBots.map(bot => (bot.id === selectedBot.id ? { ...bot, owned: !bot.owned } : bot)));
+  };
 
-  function removeBot(bot) {
-    setBots(bots.map((b) => (b.id === bot.id ? { ...b, army: false } : b)));
-  }
+  const filterFreeBots = () => {
+    let freeBots = allBots.filter(bot => !bot.owned);
+    if (filter !== 'All') {
+      freeBots = freeBots.filter(bot => bot.bot_class === filter);
+    }
+    if (query) {
+      freeBots = freeBots.filter(bot => bot.name.toLowerCase().includes(query.toLowerCase()));
+    }
+    return freeBots;
+  };
 
-  function deleteBot(bot) {
-    const deletedBot = bots.filter((b) => b.id !== bot.id);
-    setBots((bots) => deletedBot);
-  }
+  const filterOwnedBots = () => {
+    let ownedBots = allBots.filter(bot => bot.owned);
+    if (filter !== 'All') {
+      ownedBots = ownedBots.filter(bot => bot.bot_class === filter);
+    }
+    if (query) {
+      ownedBots = ownedBots.filter(bot => bot.name.toLowerCase().includes(query.toLowerCase()));
+    }
+    return ownedBots;
+  };
+
+  const handleClear = () => setQuery('');
+
+  const handleChange = (query) => setQuery(query);
+
+  const clearSpec = () => setSelectBot(undefined);
+
+  const filterChange = (value) => setFilter(value);
+
   return (
-    <div>
-      <YourBotArmy
-        bots={bots.filter((b) => b.army)}
-        removeBot={removeBot}
-        deleteBot={deleteBot}
-      />
-      <BotCollection bots={bots} enlistBot={enlistBot} deleteBot={deleteBot} />
+    <div className="container">
+      <BotSearch handleClear={handleClear} handleChange={handleChange} />
+      <br />
+      <BotFilter filterChange={filterChange} />
+      <BotArmy bots={filterOwnedBots()} addBot={clickBot} />
+      <br />
+      {selectBot ? (
+        <BotSpecs bot={selectBot} clearSpec={clearSpec} addBot={addBot} />
+      ) : (
+        <BotCollection bots={filterFreeBots()} addBot={clickBot} />
+      )}
     </div>
   );
-}
+};
 
-export default BotsPage;
+export default BotPage;

@@ -1,12 +1,17 @@
-import React from "react"
-import BotsPage from "./components/BotsPage";
+import React from "react";
+import BotPage from "./components/BotsPage";
 
-function App() {
-  return (
-    <div className="App">
-      <BotsPage />
-    </div>
-  );
-}
+import "./App.css";
+
+function App() { 
+  
+    return (
+      <div className="App">
+        <BotPage />
+      </div>
+    );
+  }
+
 
 export default App;
+
